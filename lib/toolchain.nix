@@ -9,7 +9,6 @@
   lld,
   callPackage,
   makeWrapper,
-  fixDarwinDylibNames,
   writeShellApplication,
   autoPatchelfHook,
   ...
@@ -49,7 +48,6 @@ in rec {
         // {
           nativeBuildInputs =
             nativeBuildInputs
-            ++ lib.optional stdenv.hostPlatform.isDarwin fixDarwinDylibNames
             ++ lib.optionals stdenv.hostPlatform.isLinux [autoPatchelfHook stdenv.cc.cc.lib];
         });
     compile-bin = lib.makeBinPath [lld];
@@ -58,6 +56,8 @@ in rec {
       name = "lean";
       src = tarball;
       nativeBuildInputs = [zstd makeWrapper];
+      # Stripping truncates the upstream `*_shared.dylib` stubs on Darwin
+      dontStrip = stdenv.hostPlatform.isDarwin;
       # Use `rm -f` here since not all of these executables exist on every platform
       installPhase = ''
         mkdir -p $out/
