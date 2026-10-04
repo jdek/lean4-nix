@@ -372,7 +372,7 @@
               LEAN_CC=${stdenv.cc}/bin/cc ${lean-bin-tools-unwrapped}/bin/leanc -shared ${lib.optionalString stdenv.hostPlatform.isLinux "-Wl,-Bsymbolic"} \
                 ${
                 if stdenv.hostPlatform.isDarwin
-                then "-Wl,-force_load,${Init.staticLib}/libInit.a -Wl,-force_load,${Std.staticLib}/libStd.a -Wl,-force_load,${Lean.staticLib}/libLean.a -Wl,-force_load,${leancpp}/lib/lean/libleancpp.a ${leancpp}/lib/libleanrt_initial-exec.a ${leancpp}/lib/temp/libleanshell.a -lc++"
+                then "-Wl,-force_load,${Init.staticLib}/libInit.a -Wl,-force_load,${Std.staticLib}/libStd.a -Wl,-force_load,${Lean.staticLib}/libLean.a -Wl,-force_load,${leancpp}/lib/lean/libleancpp.a ${leancpp}/lib/libleanrt_initial-exec.a -Wl,-force_load,${leancpp}/lib/temp/libleanshell.a -lc++"
                 else "-Wl,--whole-archive ${leancpp}/lib/temp/libleanshell.a -lInit -lStd -lLean -lleancpp ${leancpp}/lib/libleanrt_initial-exec.a -Wl,--no-whole-archive -lstdc++"
               } \
                 -lm ${stdlibLinkFlags} \
@@ -386,11 +386,7 @@
           '';
           lean = runCommand "lean" {buildInputs = lib.optional stdenv.hostPlatform.isDarwin darwin.cctools;} ''
             mkdir -p $out/bin
-            ${leanc}/bin/leanc ${leancpp}/lib/temp/libleanmain.a ${
-              if stdenv.hostPlatform.isDarwin
-              then "${leancpp}/lib/temp/libleanshell.a"
-              else ""
-            } ${libInit_shared}/* ${leanshared}/* ${leanshared_1}/* ${leanshared_2}/* -o $out/bin/lean
+            ${leanc}/bin/leanc ${leancpp}/lib/temp/libleanmain.a ${libInit_shared}/* ${leanshared}/* ${leanshared_1}/* ${leanshared_2}/* -o $out/bin/lean
           '';
           # derivation following the directory layout of the "basic" setup, mostly useful for running tests
           lean-all = stdenv.mkDerivation {
