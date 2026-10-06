@@ -173,7 +173,7 @@
             roots = ["Lake.Main"];
             executableName = "lake";
             deps = [Lake];
-            linkFlags = lib.optional stdenv.isLinux "-rdynamic";
+            linkFlags = lib.optional stdenv.hostPlatform.isLinux "-rdynamic";
             src = src + "/src/lake";
           };
           stdlib = [Init Std Lean Lake];
@@ -211,9 +211,9 @@
               libName = "libleanshared${stdenv.hostPlatform.extensions.sharedLibrary}";
             } ''
               mkdir $out
-              LEAN_CC=${stdenv.cc}/bin/cc ${lean-bin-tools-unwrapped}/bin/leanc -shared ${lib.optionalString stdenv.isLinux "-Wl,-Bsymbolic"} \
+              LEAN_CC=${stdenv.cc}/bin/cc ${lean-bin-tools-unwrapped}/bin/leanc -shared ${lib.optionalString stdenv.hostPlatform.isLinux "-Wl,-Bsymbolic"} \
                 ${
-                if stdenv.isDarwin
+                if stdenv.hostPlatform.isDarwin
                 then "-Wl,-force_load,${Init.staticLib}/libInit.a -Wl,-force_load,${Std.staticLib}/libStd.a -Wl,-force_load,${Lean.staticLib}/libLean.a -Wl,-force_load,${leancpp}/lib/lean/libleancpp.a ${leancpp}/lib/libleanrt_initial-exec.a -lc++"
                 else "-Wl,--whole-archive -lInit -lStd -lLean -lleancpp ${leancpp}/lib/libleanrt_initial-exec.a -Wl,--no-whole-archive -lstdc++"
               } \
@@ -226,7 +226,7 @@
           leanc = writeShellScriptBin "leanc" ''
             LEAN_CC=${stdenv.cc}/bin/cc ${Leanc.executable}/bin/leanc -I${lean-bin-tools-unwrapped}/include ${stdlibLinkFlags} -L${libInit_shared} -L${leanshared} "$@"
           '';
-          lean = runCommand "lean" {buildInputs = lib.optional stdenv.isDarwin darwin.cctools;} ''
+          lean = runCommand "lean" {buildInputs = lib.optional stdenv.hostPlatform.isDarwin darwin.cctools;} ''
             mkdir -p $out/bin
             ${leanc}/bin/leanc ${leancpp}/lib/lean.cpp.o ${libInit_shared}/* ${leanshared}/* -o $out/bin/lean
           '';

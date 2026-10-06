@@ -138,7 +138,7 @@
             buildCommand;
           mkSharedLib = name: args:
             runBareCommand "${name}-dynlib" {
-              buildInputs = [stdenv.cc] ++ lib.optional stdenv.isDarwin darwin.cctools;
+              buildInputs = [stdenv.cc] ++ lib.optional stdenv.hostPlatform.isDarwin darwin.cctools;
               libName = "${name}${stdenv.hostPlatform.extensions.sharedLibrary}";
             } ''
               mkdir -p $out
@@ -333,7 +333,7 @@
 
           objects = mapAttrs (_: m: m.obj) mods';
           bintools =
-            if stdenv.isDarwin
+            if stdenv.hostPlatform.isDarwin
             then darwin.cctools
             else stdenv.cc.bintools.bintools;
           staticLib = runCommand "${name}-lib" {buildInputs = [bintools];} ''
@@ -342,7 +342,7 @@
           '';
 
           staticLibLinkWrapper = libs:
-            if groupStaticLibs && !stdenv.isDarwin
+            if groupStaticLibs && !stdenv.hostPlatform.isDarwin
             then "-Wl,--start-group ${libs} -Wl,--end-group"
             else "${libs}";
         in rec {
@@ -370,7 +370,7 @@
           };
           sharedLib = mkSharedLib "lib${sharedLibName}" ''
             ${
-              if stdenv.isDarwin
+              if stdenv.hostPlatform.isDarwin
               then "-Wl,-force_load,${staticLib}/lib${libName}.a"
               else "-Wl,--whole-archive ${staticLib}/lib${libName}.a -Wl,--no-whole-archive"
             } \

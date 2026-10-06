@@ -49,8 +49,8 @@ in rec {
         // {
           nativeBuildInputs =
             nativeBuildInputs
-            ++ lib.optional stdenv.isDarwin fixDarwinDylibNames
-            ++ lib.optionals stdenv.isLinux [autoPatchelfHook stdenv.cc.cc.lib];
+            ++ lib.optional stdenv.hostPlatform.isDarwin fixDarwinDylibNames
+            ++ lib.optionals stdenv.hostPlatform.isLinux [autoPatchelfHook stdenv.cc.cc.lib];
         });
     compile-bin = lib.makeBinPath [lld];
     lean-all = mkDerivation {
